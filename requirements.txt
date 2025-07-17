@@ -17,3 +17,4 @@ tqdm==4.66.1
 joblib==1.3.2
 lxml==4.9.3  # Add this - required by yfinance
 html5lib==1.1  # Add this - alternative parser
+requests-cache==1.1.0
