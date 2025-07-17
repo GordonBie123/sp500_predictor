@@ -12,6 +12,7 @@ from typing import Dict, List, Optional
 import os
 import joblib
 from tqdm import tqdm
+import config  # Add this line
 
 class StockDataFetcher:
     """
@@ -36,18 +37,29 @@ class StockDataFetcher:
         """
         try:
             import requests
+            import config  # Add this import
             
-            # You already have this key in your config!
+            # Get API key
             api_key = config.ALPHA_VANTAGE_KEY
             
             # Alpha Vantage endpoint
             url = f'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={symbol}&apikey={api_key}&outputsize=full'
             
-            response = requests.get(url)
+            print(f"Fetching from Alpha Vantage: {symbol}")
+            response = requests.get(url, timeout=10)
             data = response.json()
             
+            # Check for errors
+            if 'Error Message' in data:
+                print(f"API Error: {data['Error Message']}")
+                return pd.DataFrame()
+            
+            if 'Note' in data:
+                print(f"API Rate limit: {data['Note']}")
+                return pd.DataFrame()
+                
             if 'Time Series (Daily)' not in data:
-                print(f"No data found for {symbol}")
+                print(f"No time series data in response")
                 return pd.DataFrame()
             
             # Convert to DataFrame
@@ -72,16 +84,13 @@ class StockDataFetcher:
             # Add symbol
             df['Symbol'] = symbol
             
-            # Limit to last 2 years if needed
-            if period == '2y':
-                cutoff_date = df['Date'].max() - timedelta(days=730)
-                df = df[df['Date'] >= cutoff_date]
-            
             print(f"✅ Successfully fetched {len(df)} days of data for {symbol}")
             return df
             
         except Exception as e:
             print(f"❌ Error fetching data: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return pd.DataFrame()
     
     def add_technical_indicators(self, df: pd.DataFrame) -> pd.DataFrame:
