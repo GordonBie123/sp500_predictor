@@ -2,7 +2,15 @@
 Machine Learning Models for Stock Price Prediction
 Implements LSTM, Random Forest, XGBoost, and Ensemble models
 """
+import os
+# Limit TensorFlow memory and CPU usage
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ['TF_FORCE_CPU'] = '1'
 
+import tensorflow as tf
+# Configure TensorFlow to use less memory
+tf.config.threading.set_inter_op_parallelism_threads(1)
+tf.config.threading.set_intra_op_parallelism_threads(1)
 import numpy as np
 import pandas as pd
 from typing import Tuple, Dict, List
