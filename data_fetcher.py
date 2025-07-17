@@ -30,43 +30,55 @@ class StockDataFetcher:
             os.makedirs(cache_dir)
     
     def fetch_stock_data(self, symbol: str, period: str = '2y', 
-                        interval: str = '1d') -> pd.DataFrame:
-        """
-        Fetch historical stock data using yfinance
+                    interval: str = '1d') -> pd.DataFrame:
+    """
+    Fetch historical stock data using yfinance
+    """
+    try:
+        # Create ticker object
+        ticker = yf.Ticker(symbol)
         
-        Args:
-            symbol: Stock ticker symbol (e.g., 'AAPL')
-            period: Time period to fetch (1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max)
-            interval: Data interval (1m, 2m, 5m, 15m, 30m, 60m, 90m, 1h, 1d, 5d, 1wk, 1mo, 3mo)
+        # Fetch historical data
+        data = ticker.history(period=period, interval=interval)
         
-        Returns:
-            DataFrame with OHLCV data
-        """
-        try:
-            # Create ticker object
-            ticker = yf.Ticker(symbol)
-            
-            # Fetch historical data
-            data = ticker.history(period=period, interval=interval)
+        if data.empty:
+            # Try alternative approach
+            print(f"⚠️ First attempt failed, trying yf.download...")
+            data = yf.download(symbol, period=period, interval=interval, progress=False)
             
             if data.empty:
                 raise ValueError(f"No data found for symbol {symbol}")
-            
-            # Reset index to have date as a column
-            data.reset_index(inplace=True)
-            
-            # Add symbol column
-            data['Symbol'] = symbol
-            
-            print(f"✅ Successfully fetched data for {symbol}")
-            print(f"   Date range: {data['Date'].min()} to {data['Date'].max()}")
-            print(f"   Total records: {len(data)}")
-            
-            return data
-            
-        except Exception as e:
-            print(f"❌ Error fetching data for {symbol}: {str(e)}")
-            return pd.DataFrame()
+        
+        # Reset index to have date as a column
+        data.reset_index(inplace=True)
+        
+        # Add symbol column
+        data['Symbol'] = symbol
+        
+        print(f"✅ Successfully fetched data for {symbol}")
+        print(f"   Date range: {data['Date'].min()} to {data['Date'].max()}")
+        print(f"   Total records: {len(data)}")
+        
+        return data
+        
+    except Exception as e:
+        print(f"❌ Error fetching data for {symbol}: {str(e)}")
+        print(f"   Error type: {type(e).__name__}")
+        
+        # Try with .L suffix for London stocks or without suffix
+        if '.' not in symbol and symbol not in ['SPY', 'QQQ']:
+            try:
+                print(f"🔄 Retrying with {symbol}.L...")
+                ticker = yf.Ticker(f"{symbol}.L")
+                data = ticker.history(period=period, interval=interval)
+                if not data.empty:
+                    data.reset_index(inplace=True)
+                    data['Symbol'] = symbol
+                    return data
+            except:
+                pass
+        
+        return pd.DataFrame()
     
     def add_technical_indicators(self, df: pd.DataFrame) -> pd.DataFrame:
         """
