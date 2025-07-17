@@ -63,7 +63,7 @@ class StockPredictorApp:
         
         # Initialize session state variables
         if 'selected_stock' not in st.session_state:
-            st.session_state.selected_stock = 'UNH'
+            st.session_state.selected_stock = 'AAPL'
         if 'prediction_history' not in st.session_state:
             st.session_state.prediction_history = []
         
