@@ -6,16 +6,6 @@ Store your API keys and settings here
 import os
 import streamlit as st
 from dotenv import load_dotenv
-import yfinance as yf
-import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
-import ta
-from typing import Dict, List, Optional
-import os
-import joblib
-from tqdm import tqdm
-import config  # Add this line
 
 # Load environment variables from .env file
 load_dotenv()
