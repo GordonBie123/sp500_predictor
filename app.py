@@ -87,7 +87,7 @@ class StockPredictorApp:
             selected_stock = st.selectbox(
                 "Select Stock Symbol",
                 config.SP500_SYMBOLS,
-                index=config.SP500_SYMBOLS.index(st.session_state.selected_stock),
+                index=config.SP500_SYMBOLS.index(st.session_state.selected_stock) if st.session_state.selected_stock in config.SP500_SYMBOLS else 0,
                 key='stock_selector'
             )
             
