@@ -10,8 +10,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # API Keys (Store in .env file for security)
-NEWS_API_KEY = os.getenv('NEWS_API_KEY', '93fea06edd8b41148e5c64949494225c')
-ALPHA_VANTAGE_KEY = os.getenv('ALPHA_VANTAGE_KEY', 'AS77BW0DBO45OEBN')
+NEWS_API_KEY = os.getenv('NEWS_API_KEY', 'your_newsapi_key_here')
+ALPHA_VANTAGE_KEY = os.getenv('ALPHA_VANTAGE_KEY', 'your_alpha_vantage_key_here')
 
 # Database Configuration
 DATABASE_PATH = 'stock_predictor.db'
