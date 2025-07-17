@@ -35,19 +35,23 @@ class StockDataFetcher:
         Fetch historical stock data using yfinance
         """
         try:
-            # Create ticker object
+            # Use the Ticker object directly without validation
             ticker = yf.Ticker(symbol)
             
-            # Fetch historical data
-            data = ticker.history(period=period, interval=interval)
+            # Get data without specifying period (use defaults)
+            data = ticker.history()
             
             if data.empty:
-                # Try alternative approach
-                print(f"⚠️ First attempt failed, trying yf.download...")
-                data = yf.download(symbol, period=period, interval=interval, progress=False)
+                # If empty, try with specific dates
+                end_date = datetime.now()
+                start_date = end_date - timedelta(days=730)
                 
-                if data.empty:
-                    raise ValueError(f"No data found for symbol {symbol}")
+                ticker = yf.Ticker(symbol)
+                data = ticker.history(start=start_date, end=end_date)
+            
+            if data.empty:
+                print(f"No data found for {symbol}")
+                return pd.DataFrame()
             
             # Reset index to have date as a column
             data.reset_index(inplace=True)
@@ -56,28 +60,12 @@ class StockDataFetcher:
             data['Symbol'] = symbol
             
             print(f"✅ Successfully fetched data for {symbol}")
-            print(f"   Date range: {data['Date'].min()} to {data['Date'].max()}")
             print(f"   Total records: {len(data)}")
             
             return data
             
         except Exception as e:
             print(f"❌ Error fetching data for {symbol}: {str(e)}")
-            print(f"   Error type: {type(e).__name__}")
-            
-            # Try with .L suffix for London stocks or without suffix
-            if '.' not in symbol and symbol not in ['SPY', 'QQQ']:
-                try:
-                    print(f"🔄 Retrying with {symbol}.L...")
-                    ticker = yf.Ticker(f"{symbol}.L")
-                    data = ticker.history(period=period, interval=interval)
-                    if not data.empty:
-                        data.reset_index(inplace=True)
-                        data['Symbol'] = symbol
-                        return data
-                except:
-                    pass
-            
             return pd.DataFrame()
     
     def add_technical_indicators(self, df: pd.DataFrame) -> pd.DataFrame:
