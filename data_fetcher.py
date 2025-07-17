@@ -32,37 +32,56 @@ class StockDataFetcher:
     def fetch_stock_data(self, symbol: str, period: str = '2y', 
                     interval: str = '1d') -> pd.DataFrame:
         """
-        Fetch historical stock data using yfinance
+        Fetch historical stock data using Alpha Vantage API
         """
         try:
-            import requests_cache
-            session = requests_cache.CachedSession('yfinance.cache')
-            session.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            import requests
             
-            # Download with custom session
-            data = yf.download(
-                symbol,
-                period=period,
-                interval=interval,
-                progress=False,
-                show_errors=False,
-                session=session
-            )
+            # You already have this key in your config!
+            api_key = config.ALPHA_VANTAGE_KEY
             
-            if data.empty:
+            # Alpha Vantage endpoint
+            url = f'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={symbol}&apikey={api_key}&outputsize=full'
+            
+            response = requests.get(url)
+            data = response.json()
+            
+            if 'Time Series (Daily)' not in data:
+                print(f"No data found for {symbol}")
                 return pd.DataFrame()
             
-            # Reset index to have date as a column
-            data.reset_index(inplace=True)
+            # Convert to DataFrame
+            time_series = data['Time Series (Daily)']
+            df = pd.DataFrame.from_dict(time_series, orient='index')
             
-            # Add symbol column
-            data['Symbol'] = symbol
+            # Rename columns
+            df.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
             
-            print(f"✅ Successfully fetched data for {symbol}")
-            return data
+            # Convert to numeric
+            for col in df.columns:
+                df[col] = pd.to_numeric(df[col])
+            
+            # Reset index and rename
+            df.reset_index(inplace=True)
+            df.rename(columns={'index': 'Date'}, inplace=True)
+            df['Date'] = pd.to_datetime(df['Date'])
+            
+            # Sort by date
+            df = df.sort_values('Date')
+            
+            # Add symbol
+            df['Symbol'] = symbol
+            
+            # Limit to last 2 years if needed
+            if period == '2y':
+                cutoff_date = df['Date'].max() - timedelta(days=730)
+                df = df[df['Date'] >= cutoff_date]
+            
+            print(f"✅ Successfully fetched {len(df)} days of data for {symbol}")
+            return df
             
         except Exception as e:
-            print(f"❌ Error fetching data for {symbol}: {str(e)}")
+            print(f"❌ Error fetching data: {str(e)}")
             return pd.DataFrame()
     
     def add_technical_indicators(self, df: pd.DataFrame) -> pd.DataFrame:
