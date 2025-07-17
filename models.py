@@ -107,20 +107,12 @@ class StockPricePredictor:
     
     def build_lstm_model(self, input_shape: Tuple):
         """
-        Build LSTM neural network model
-        
-        Args:
-            input_shape: Shape of input data (lookback_days, n_features)
-            
-        Returns:
-            Compiled LSTM model
+        Build LSTM neural network model (optimized for Streamlit Cloud)
         """
         model = Sequential([
-            LSTM(128, return_sequences=True, input_shape=input_shape),
+            LSTM(64, return_sequences=True, input_shape=input_shape),  # Reduced from 128
             Dropout(0.2),
-            LSTM(64, return_sequences=True),
-            Dropout(0.2),
-            LSTM(32, return_sequences=False),
+            LSTM(32, return_sequences=False),  # Reduced from 64
             Dropout(0.2),
             Dense(16, activation='relu'),
             Dense(1)
