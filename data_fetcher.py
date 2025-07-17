@@ -35,22 +35,21 @@ class StockDataFetcher:
         Fetch historical stock data using yfinance
         """
         try:
-            # Use the Ticker object directly without validation
-            ticker = yf.Ticker(symbol)
+            import requests_cache
+            session = requests_cache.CachedSession('yfinance.cache')
+            session.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
             
-            # Get data without specifying period (use defaults)
-            data = ticker.history()
+            # Download with custom session
+            data = yf.download(
+                symbol,
+                period=period,
+                interval=interval,
+                progress=False,
+                show_errors=False,
+                session=session
+            )
             
             if data.empty:
-                # If empty, try with specific dates
-                end_date = datetime.now()
-                start_date = end_date - timedelta(days=730)
-                
-                ticker = yf.Ticker(symbol)
-                data = ticker.history(start=start_date, end=end_date)
-            
-            if data.empty:
-                print(f"No data found for {symbol}")
                 return pd.DataFrame()
             
             # Reset index to have date as a column
@@ -60,8 +59,6 @@ class StockDataFetcher:
             data['Symbol'] = symbol
             
             print(f"✅ Successfully fetched data for {symbol}")
-            print(f"   Total records: {len(data)}")
-            
             return data
             
         except Exception as e:
