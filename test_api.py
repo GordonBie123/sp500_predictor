@@ -1,6 +1,6 @@
 from newsapi import NewsApiClient
 
-api_key = '93fea06edd8b41148e5c64949494225c'
+api_key = 'Input you api key"
 newsapi = NewsApiClient(api_key=api_key)
 
 try:
@@ -9,4 +9,5 @@ try:
     print(f"API Status: {top_headlines['status']}")
     print(f"Total Results: {top_headlines['totalResults']}")
 except Exception as e:
+
     print(f"API Error: {e}")
